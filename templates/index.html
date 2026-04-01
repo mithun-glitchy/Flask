@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog posts</title>
+
+```
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: system-ui, -apple-system, sans-serif;
+        background: #ffffff;
+        color: #111;
+        padding: 40px 20px;
+    }
+
+    .container {
+        max-width: 640px;
+        margin: auto;
+    }
+
+    /* Title */
+    h1 {
+        font-size: 2rem;
+        font-weight: 500;
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 500;
+        margin: 30px 0 15px;
+        color: #555;
+    }
+
+    .badge {
+        font-size: 0.8rem;
+        color: #888;
+    }
+
+    .posts-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+    }
+
+    /* Card */
+    .post-card {
+        padding-bottom: 20px;
+        border-bottom: 1px solid #eee;
+        transition: opacity 0.2s ease;
+    }
+
+    .post-card:hover {
+        opacity: 0.7;
+    }
+
+    .post-img {
+        width: 100%;
+        border-radius: 6px;
+        margin-bottom: 12px;
+    }
+
+    .post-title {
+        font-size: 1.2rem;
+        font-weight: 500;
+        margin-bottom: 6px;
+    }
+
+    .post-meta {
+        font-size: 0.8rem;
+        color: #777;
+        margin-bottom: 10px;
+    }
+
+    .post-preview {
+        font-size: 0.9rem;
+        color: #444;
+        margin-bottom: 10px;
+    }
+
+    .post-link {
+        font-size: 0.9rem;
+        color: #000;
+        text-decoration: none;
+    }
+
+    .post-link:hover {
+        text-decoration: underline;
+    }
+
+    /* Buttons */
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+        margin-top: 10px;
+    }
+
+    .btn {
+        padding: 6px 10px;
+        font-size: 0.8rem;
+        border: 1px solid #ddd;
+        background: transparent;
+        cursor: pointer;
+    }
+
+    .btn-edit {
+        color: #000;
+    }
+
+    .btn-delete {
+        color: #000;
+    }
+
+    .btn:hover {
+        background: #f5f5f5;
+    }
+
+    .btn-disabled {
+        color: #aaa;
+        cursor: not-allowed;
+    }
+
+    /* Floating button */
+    .create-btn {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: #000;
+        color: #fff;
+        padding: 10px 16px;
+        font-size: 0.85rem;
+        text-decoration: none;
+        border-radius: 20px;
+    }
+
+    .create-btn:hover {
+        opacity: 0.8;
+    }
+</style>
+```
+
+</head>
+
+<body>
+    <div class="container">
+        <h1>The Daily Blog</h1>
+
+```
+    {% if db_posts %}
+    <h2 class="section-title">Your Posts <span class="badge">{{ db_posts|length }}</span></h2>
+    <div class="posts-grid">
+        {% for post in db_posts %}
+        <div class="post-card">
+            <img class="post-img" src="https://picsum.photos/900/400?random=db{{ post.id }}">
+            <div class="post-title">{{ post.title }}</div>
+            <div class="post-meta">By {{ post.author }} • {{ post.created_at or 'Today' }}</div>
+            <div class="post-preview">{{ post.body[:200] }}...</div>
+            <a href="/my-post/{{ post.id }}" class="post-link">Read →</a>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if api_posts %}
+    <h2 class="section-title">External Posts</h2>
+    <div class="posts-grid">
+        {% for post in api_posts %}
+        <div class="post-card">
+            <img class="post-img" src="https://picsum.photos/900/400?random={{ post.id }}">
+            <div class="post-title">{{ post.title }}</div>
+            <div class="post-meta">By Author {{ post.userId }}</div>
+            <div class="post-preview">{{ post.body[:200] }}...</div>
+            <a href="/post/{{ post.id }}" class="post-link">Read →</a>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+<a href="/create" class="create-btn">+ Create</a>
+```
+
+</body>
+
+</html>
