@@ -5,12 +5,11 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-# Database setup function
+# ================== ✅ FIX: Initialize DB on startup ==================
 def init_db():
     conn = sqlite3.connect('blog.db')
     cursor = conn.cursor()
 
-    # Posts table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS posts (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -21,7 +20,6 @@ def init_db():
         )
     ''')
 
-    # Comments table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS comments (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -35,7 +33,12 @@ def init_db():
     conn.commit()
     conn.close()
 
-# Get all posts from database
+# ✅ THIS IS THE IMPORTANT PART (runs on Render)
+with app.app_context():
+    init_db()
+
+# ================== DATABASE FUNCTIONS ==================
+
 def get_db_posts():
     conn = sqlite3.connect('blog.db')
     conn.row_factory = sqlite3.Row
@@ -45,7 +48,6 @@ def get_db_posts():
     conn.close()
     return [dict(post) for post in posts]
 
-# Add new post to database
 def add_post(title, body, author):
     conn = sqlite3.connect('blog.db')
     cursor = conn.cursor()
@@ -54,7 +56,6 @@ def add_post(title, body, author):
     conn.commit()
     conn.close()
 
-# Get a single post by ID
 def get_post_by_id(post_id):
     conn = sqlite3.connect('blog.db')
     conn.row_factory = sqlite3.Row
@@ -64,7 +65,6 @@ def get_post_by_id(post_id):
     conn.close()
     return dict(post) if post else None
 
-# Update existing post
 def update_post(post_id, title, body, author):
     conn = sqlite3.connect('blog.db')
     cursor = conn.cursor()
@@ -73,7 +73,6 @@ def update_post(post_id, title, body, author):
     conn.commit()
     conn.close()
 
-# Delete post by ID
 def delete_post(post_id):
     conn = sqlite3.connect('blog.db')
     cursor = conn.cursor()
@@ -81,9 +80,8 @@ def delete_post(post_id):
     conn.commit()
     conn.close()
 
-# ====== COMMENT FUNCTIONS ======
+# ================== COMMENT FUNCTIONS ==================
 
-# Get all comments for a post
 def get_comments_by_post_id(post_id):
     conn = sqlite3.connect('blog.db')
     conn.row_factory = sqlite3.Row
@@ -93,7 +91,6 @@ def get_comments_by_post_id(post_id):
     conn.close()
     return [dict(comment) for comment in comments]
 
-# Add new comment
 def add_comment(post_id, content):
     conn = sqlite3.connect('blog.db')
     cursor = conn.cursor()
@@ -102,7 +99,6 @@ def add_comment(post_id, content):
     conn.commit()
     conn.close()
 
-# Get single comment by ID
 def get_comment_by_id(comment_id):
     conn = sqlite3.connect('blog.db')
     conn.row_factory = sqlite3.Row
@@ -112,7 +108,6 @@ def get_comment_by_id(comment_id):
     conn.close()
     return dict(comment) if comment else None
 
-# Update comment
 def update_comment(comment_id, content):
     conn = sqlite3.connect('blog.db')
     cursor = conn.cursor()
@@ -121,13 +116,14 @@ def update_comment(comment_id, content):
     conn.commit()
     conn.close()
 
-# Delete comment
 def delete_comment(comment_id):
     conn = sqlite3.connect('blog.db')
     cursor = conn.cursor()
     cursor.execute('DELETE FROM comments WHERE id = ?', (comment_id,))
     conn.commit()
     conn.close()
+
+# ================== ROUTES ==================
 
 @app.route('/')
 def index():
@@ -183,7 +179,7 @@ def post_detail(post_id):
         return render_template('post-detail.html', post=post)
     except:
         return render_template('post-detail.html', post=None)
-    
+
 @app.route('/my-post/<int:post_id>')
 def view_post(post_id):
     conn = sqlite3.connect('blog.db')
@@ -191,12 +187,9 @@ def view_post(post_id):
 
     cursor.execute("SELECT * FROM posts WHERE id = ?", (post_id,))
     post = cursor.fetchone()
-
     conn.close()
 
-    # Get comments for this post
     comments = get_comments_by_post_id(post_id)
-
     return render_template("view_post.html", post=post, comments=comments)
 
 @app.route('/add-comment/<int:post_id>', methods=['POST'])
@@ -212,7 +205,6 @@ def edit_comment_route(comment_id):
         content = request.form.get('content')
         if content:
             update_comment(comment_id, content)
-            # Get the comment to find the post_id
             comment = get_comment_by_id(comment_id)
             if comment:
                 return redirect(url_for('view_post', post_id=comment['post_id']))
@@ -226,14 +218,14 @@ def edit_comment_route(comment_id):
 
 @app.route('/delete-comment/<int:comment_id>')
 def delete_comment_route(comment_id):
-    # Get the comment to find the post_id before deleting
     comment = get_comment_by_id(comment_id)
     if comment:
         post_id = comment['post_id']
         delete_comment(comment_id)
         return redirect(url_for('view_post', post_id=post_id))
-    return redirect(url_for('index'))    
+    return redirect(url_for('index'))
+
+# ================== RUN ==================
 
 if __name__ == '__main__':
-    init_db()
-    app.run(debug=True,host='0.0.0.0',port=5001)
+    app.run(debug=True, host='0.0.0.0', port=5000)
